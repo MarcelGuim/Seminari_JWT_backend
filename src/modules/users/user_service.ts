@@ -6,6 +6,7 @@ export const saveMethod = () => {
 };
 export const createUser = async (userData: IUser) => {
     const user = new User(userData);
+    console.log(user);
     return await user.save();
 };
 

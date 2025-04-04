@@ -11,7 +11,8 @@ import { routeNotFound } from './middleware/routeNotFound.js';
 import { checkJwt } from './middleware/session.js';
 import swaggerUi from 'swagger-ui-express';
 import swaggerJSDoc from 'swagger-jsdoc';
-
+import { getAllUsers } from './modules/users/user_service.js'
+import { IUser } from './modules/users/user_models.js'
 dotenv.config(); // Cargamos las variables de entorno desde el archivo .env
 
 const app = express();
@@ -69,7 +70,7 @@ const swaggerOptions = {
             },
         ],
     },
-    apis: ['./modules/users/*.js', './modules/forum/*.js', './modules/subjects/*.js', './modules/auth/*.js'] // Asegúrate de que esta ruta apunta a tus rutas
+    apis: ['./build/**/*.js'] // Asegúrate de que esta ruta apunta a tus rutas
 };
 
 const swaggerSpec = swaggerJSDoc(swaggerOptions);
@@ -92,7 +93,7 @@ app.get('/', (req, res) => {
 // Conexión a MongoDB
 //mongoose;
 mongoose
-    .connect(process.env.MONGODB_URI || 'mongodb+srv://joan:1234@cluster0.3owhs.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0')
+    .connect("mongodb://localhost:27017/test")
     .then(() => console.log('Connected to DB'))
     .catch((error) => console.error('DB Connection Error:', error));
 
@@ -104,4 +105,3 @@ app.listen(LOCAL_PORT, () => {
 function cors(arg0: { origin: string; credentials: boolean; }): any {
     throw new Error('Function not implemented.');
 }
-

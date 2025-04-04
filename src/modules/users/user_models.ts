@@ -17,8 +17,7 @@ const userSchema = new mongoose.Schema(
         },
         email: {
             type: String,
-            required: true,
-            unique: true
+            required: true
         },
         googleId: { type: String },
     },
@@ -34,7 +33,7 @@ export interface IUser extends Auth{
     password: string;
     email: string;
     googleId: string;
-    
+    _id?: mongoose.Types.ObjectId;
 }
 
 const User = mongoose.model('User', userSchema);

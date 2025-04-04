@@ -1,9 +1,11 @@
 import { encrypt, verified } from "../../utils/bcrypt.handle.js";
-import { generateToken } from "../../utils/jwt.handle.js";
+import { generateAccessToken, generateRefreshToken } from "../../utils/jwt.handle.js";
 import User, { IUser } from "../users/user_models.js";
 import { Auth } from "./auth_model.js";
 import jwt from 'jsonwebtoken';
 import axios from 'axios';
+import { channel } from "diagnostics_channel";
+
 
 const registerNewUser = async ({ email, password, name, age }: IUser) => {
     const checkIs = await User.findOne({ email });
@@ -17,21 +19,32 @@ const registerNewUser = async ({ email, password, name, age }: IUser) => {
     return registerNewUser;
 };
 
-const loginUser = async ({ email, password }: Auth) => {
-    const checkIs = await User.findOne({ email });
-    if(!checkIs) return "NOT_FOUND_USER";
-
-    const passwordHash = checkIs.password; //El encriptado que viene de la bbdd
+const loginUser = async (email1: string, password: string) => {
+    console.log(email1);
+    const user = await User.findOne({email: email1})
+    if(!user) return "NOT_FOUND_USER";
+    const passwordHash = user.password;
     const isCorrect = await verified(password, passwordHash);
     if(!isCorrect) return "INCORRECT_PASSWORD";
 
-    const token = generateToken(checkIs.email);
+    const token = generateAccessToken(user as IUser);
     const data = {
         token,
-        user: checkIs
+        user: user
     }
     return data;
 };
+
+const refreshTokenUser = async (email1: string) => {
+    const user = await User.findOne({email: email1})
+    if(!user) return "NOT_FOUND_USER";
+    const token = generateRefreshToken(user.email);
+    const data = {
+        token,
+        user: user
+    }
+    return data;
+}
 
 const googleAuth = async (code: string) => {
 
@@ -88,7 +101,7 @@ const googleAuth = async (code: string) => {
         }
 
         // Genera el token JWT
-        const token = generateToken(user.email);
+        const token = generateAccessToken(user as IUser);
 
         console.log(token);
         return { token, user };
@@ -100,4 +113,4 @@ const googleAuth = async (code: string) => {
 };
 
 
-export { registerNewUser, loginUser, googleAuth };
+export { registerNewUser, loginUser, googleAuth, refreshTokenUser };

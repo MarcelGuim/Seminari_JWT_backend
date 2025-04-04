@@ -13,6 +13,7 @@ export const saveMethodHandler = async (req: Request, res: Response) => {
 };
 export const createUserHandler = async (req: Request, res: Response) => {
     try {
+        console.log("Creating User");
         const data = await createUser(req.body);
         res.json(data);
     } catch (error: any) {
@@ -20,6 +21,7 @@ export const createUserHandler = async (req: Request, res: Response) => {
     }
 };
 export const getAllUsersHandler = async (req: Request, res: Response) => {
+    console.log("Ha entrat");
     try {
         const data = await getAllUsers();
         res.json(data);
