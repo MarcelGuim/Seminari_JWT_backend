@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { registerNewUser, loginUser, googleAuth, refreshTokenUser } from "../auth/auth_service.js";
+import { registerNewUser, loginUser, googleAuth, getAccesTokenFromRefreshToken } from "../auth/auth_service.js";
 import { verifyTokenAccess } from "../../utils/jwt.handle.js";
 
 const registerCtrl = async ({body}: Request, res: Response) => {
@@ -11,7 +11,6 @@ const registerCtrl = async ({body}: Request, res: Response) => {
     }
 };
 
-
 const loginCtrl = async ({ body }: Request, res: Response) => {
     try {
         const { name, email, password } = body;
@@ -20,33 +19,31 @@ const loginCtrl = async ({ body }: Request, res: Response) => {
         if (responseUser === 'INCORRECT_PASSWORD') {
             return res.status(403).json({ message: 'Contraseña incorrecta' });
         }
-
-        if (responseUser === 'NOT_FOUND_USER') {
+        else if (responseUser === 'NOT_FOUND_USER') {
             return res.status(404).json({ message: 'Usuario no encontrado' });
         }
+        else{
+            return res.json(responseUser);
 
-        return res.json(responseUser);
-    } catch (error: any) {
-        return res.status(500).json({ message: error.message });
-    }
-};
-
-const refreshCtrl = async ({ body }: Request, res: Response) => {
-    try {
-        const  {accesToken, email, password } = body;
-        const user = await verifyTokenAccess(accesToken);
-        if (user.mail = email){
-            const responseUser = await refreshTokenUser(email);
-            if (responseUser === 'NOT_FOUND_USER') {
-                return res.status(404).json({ message: 'Usuario no encontrado' });
-            }
-    
-            return res.json(responseUser); 
         }
     } catch (error: any) {
         return res.status(500).json({ message: error.message });
     }
 };
+
+const generateAccesTokenFromRefreshToken = async (req: Request, res: Response) => {
+    try {
+        console.log("1");
+        const refreshToken1 = req.body.refreshToken;
+        console.log("2");
+        console.log(refreshToken1);
+        const accessToken = await getAccesTokenFromRefreshToken(refreshToken1);
+        return res.json(accessToken);
+    } catch (error: any) {
+        return res.status(500).json({ message: error.message });
+    }
+}
+
 const googleAuthCtrl = async(req: Request, res: Response) =>{
     const redirectUri = process.env.GOOGLE_OAUTH_REDIRECT_URL;
     if (!redirectUri) {
@@ -99,4 +96,5 @@ const googleAuthCallback = async (req: Request, res: Response) => {
 };
 
 
-export { registerCtrl, loginCtrl,googleAuthCtrl, googleAuthCallback, refreshCtrl };
+
+export { registerCtrl, loginCtrl,googleAuthCtrl, googleAuthCallback, generateAccesTokenFromRefreshToken };

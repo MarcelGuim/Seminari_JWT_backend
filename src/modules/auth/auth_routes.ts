@@ -1,6 +1,12 @@
 // src/routes/user_routes.ts
 import express from 'express';
-import { registerCtrl, loginCtrl, googleAuthCtrl, googleAuthCallback, refreshCtrl } from "./auth_controller.js";
+import {
+  registerCtrl,
+  loginCtrl,
+  googleAuthCtrl,
+  googleAuthCallback,
+  generateAccesTokenFromRefreshToken
+} from "./auth_controller.js";
 
 const router = express.Router();
 
@@ -33,6 +39,7 @@ const router = express.Router();
  *         password: contraseña123
  *         age: 30
  *         email: usuario@example.com
+
  *     AuthLogin:
  *       type: object
  *       required:
@@ -48,6 +55,35 @@ const router = express.Router();
  *       example:
  *         email: usuario@ejemplo.com
  *         password: contraseña123
+
+ *     RefreshTokenRequest:
+ *       type: object
+ *       required:
+ *         - refreshToken
+ *       properties:
+ *         refreshToken:
+ *           type: string
+ *           description: El token de refresco JWT del usuario
+ *       example:
+ *         refreshToken: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+
+ *     AccessTokenResponse:
+ *       type: object
+ *       properties:
+ *         accessToken:
+ *           type: string
+ *           description: El nuevo token de acceso generado
+ *       example:
+ *         accessToken: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+
+ *     ErrorResponse:
+ *       type: object
+ *       properties:
+ *         message:
+ *           type: string
+ *           description: Missatge d'error
+ *       example:
+ *         message: Usuario no encontrado
  */
 
 /**
@@ -72,6 +108,46 @@ router.post("/auth/register", registerCtrl);
 
 /**
  * @swagger
+ * /api/auth/refresh:
+ *   post:
+ *     summary: Genera un nuevo token de acceso a partir de un refresh token válido
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/RefreshTokenRequest'
+ *     responses:
+ *       200:
+ *         description: Token de acceso generado exitosamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/AccessTokenResponse'
+ *       403:
+ *         description: Contraseña incorrecta
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       404:
+ *         description: Usuario no encontrado
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Error interno del servidor
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+router.post("/auth/refresh", generateAccesTokenFromRefreshToken);
+
+/**
+ * @swagger
  * /api/auth/login:
  *   post:
  *     summary: Inicia sesión un usuario
@@ -89,26 +165,6 @@ router.post("/auth/register", registerCtrl);
  *         description: Error en la solicitud
  */
 router.post("/auth/login", loginCtrl);
-
-/**
- * @swagger
- * /api/auth/refresh:
- *   post:
- *     summary: Refresca sesión un usuario
- *     tags: [Auth]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/AuthLogin'
- *     responses:
- *       200:
- *         description: Inicio de sesión exitoso
- *       400:
- *         description: Error en la solicitud
- */
-router.post("/auth/refresh", refreshCtrl);
 
 /**
  * @swagger

@@ -1,5 +1,5 @@
 import { encrypt, verified } from "../../utils/bcrypt.handle.js";
-import { generateAccessToken, generateRefreshToken } from "../../utils/jwt.handle.js";
+import { generateAccessToken, generateRefreshToken, verifyTokenRefresh } from "../../utils/jwt.handle.js";
 import User, { IUser } from "../users/user_models.js";
 import { Auth } from "./auth_model.js";
 import jwt from 'jsonwebtoken';
@@ -27,21 +27,24 @@ const loginUser = async (email1: string, password: string) => {
     const isCorrect = await verified(password, passwordHash);
     if(!isCorrect) return "INCORRECT_PASSWORD";
 
-    const token = generateAccessToken(user as IUser);
+    const accesToken = generateAccessToken(user as IUser);
+    const refreshToken = await generateRefreshToken(user.id);
     const data = {
-        token,
+        accesToken: accesToken,
+        refreshToken: refreshToken,
         user: user
     }
     return data;
 };
 
-const refreshTokenUser = async (email1: string) => {
-    const user = await User.findOne({email: email1})
-    if(!user) return "NOT_FOUND_USER";
-    const token = generateRefreshToken(user.email);
+const getAccesTokenFromRefreshToken = async (refreshToken: string) => {
+    console.log("3");
+    console.log(refreshToken)
+    const refresh = await verifyTokenRefresh(refreshToken);
+    const user = await User.findById(refresh.id);
+    const AccessToken = await generateAccessToken(user as IUser);
     const data = {
-        token,
-        user: user
+        accesToken: AccessToken
     }
     return data;
 }
@@ -113,4 +116,4 @@ const googleAuth = async (code: string) => {
 };
 
 
-export { registerNewUser, loginUser, googleAuth, refreshTokenUser };
+export { registerNewUser, loginUser, googleAuth, getAccesTokenFromRefreshToken };
